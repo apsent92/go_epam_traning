@@ -71,8 +71,13 @@ func (g Genre) Create(genre *Genre) (int64, error) {
 }
 
 func (g Genre) Delete(id int64) error {
+	sqlFromList := "delete from list where genre_id=$1"
+	_, err :=  dbGenre.Exec(sqlFromList, id)
+	if err != nil {
+		return err
+	}
 	sqlStatement := "delete from genres where id_genre=$1"
-	_, err :=  dbGenre.Exec(sqlStatement, id)
+	_, err =  dbGenre.Exec(sqlStatement, id)
 	if err != nil {
 		return err
 	}

@@ -24,7 +24,8 @@ func (film Film) GetAll(idGenre int64) []Film{
 		f Film
 		films[] Film
 	)
-	sqlStatement :=  "select * from films where id_genre=$1"
+	sqlStatement :=  "select films.id_film, list.genre_id, films.name from list " +
+		"left join films on list.film_id = films.id_film  where genre_id=$1"
 	rows, err := dbFilm.Query(sqlStatement, idGenre)
 	if err != nil{
 		fmt.Println(err)
@@ -40,7 +41,8 @@ func (film Film) GetAll(idGenre int64) []Film{
 
 func (film Film) GetById(idFilm, idGenre int64) (*Film, error) {
 	f := &Film{}
-	sqlStatement :=  "select * from films where id_film=$1 and id_genre=$2"
+	sqlStatement :=  "select films.id_film, list.genre_id, films.name from list " +
+		"left join films on list.film_id = films.id_film  where film_id=$1 and genre_id=$2"
 	err := dbFilm.QueryRow(sqlStatement, idFilm, idGenre,
 	).Scan(
 		&f.Id,
@@ -54,9 +56,14 @@ func (film Film) GetById(idFilm, idGenre int64) (*Film, error) {
 }
 
 func (film Film) Create(f *Film) (int64, error) {
-	sqlStatement :=  "insert into films (id_genre, name) values ($1,$2) returning id_film"
+	sqlInFilms :=  "insert into films (name) values ($1) returning id_film"
 	id := 0
-	err := dbFilm.QueryRow(sqlStatement, f.GenreId, f.Name).Scan(&id)
+	err := dbFilm.QueryRow(sqlInFilms, f.Name).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+	sqlInList :=  "insert into list (film_id, genre_id) values ($1,$2)"
+	_, err = dbFilm.Exec(sqlInList, id, f.GenreId)
 	if err != nil {
 		return 0, err
 	}
@@ -64,8 +71,13 @@ func (film Film) Create(f *Film) (int64, error) {
 }
 
 func (film Film) Update(f *Film, id int64) error {
-	sqlStatement :=  "update films set id_genre=$2, name=$3  where id_film=$1"
-	_, err :=  dbGenre.Exec(sqlStatement, id, f.GenreId, f.Name)
+	sqlInFilms :=  "update films set name=$2  where id_film=$1"
+	_, err :=  dbGenre.Exec(sqlInFilms, id, f.Name)
+	if err != nil {
+		return err
+	}
+	sqlInList :=  "update list set genre_id=$2  where id_film=$1"
+	_, err =  dbGenre.Exec(sqlInList, id, f.GenreId)
 	if err != nil {
 		return err
 	}
@@ -73,8 +85,13 @@ func (film Film) Update(f *Film, id int64) error {
 }
 
 func (film Film) Delete(idFilm, idGenre int64) error {
-	sqlStatement :=  "delete from films where id_film=$1 and id_genre=$2"
-	_, err :=  dbGenre.Exec(sqlStatement, idFilm, idGenre)
+	sqlInList :=  "delete from list where film_id=$1 and genre_id=$2"
+	_, err :=  dbGenre.Exec(sqlInList, idFilm, idGenre)
+	if err != nil {
+		return err
+	}
+	sqlInFilms :=  "delete from films where id_film=$1"
+	_, err =  dbGenre.Exec(sqlInFilms, idFilm, idGenre)
 	if err != nil {
 		return err
 	}

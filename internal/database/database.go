@@ -11,7 +11,7 @@ type Database struct {
 }
 
 func New() *Database {
-	db, err := sql.Open("postgres", "host=db port=5432 dbname=mydb user=root password =root sslmode=disable")
+	db, err := sql.Open("postgres", "host=0.0.0.0 port=5432 dbname=mydb user=root password =root sslmode=disable")
 	if err != nil{
 		log.Fatal(err)
 	}

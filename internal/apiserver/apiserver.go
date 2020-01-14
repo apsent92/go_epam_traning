@@ -15,7 +15,7 @@ type APIServer struct{
 func (s *APIServer) Start() {
 	s.router = mux.NewRouter()
 	s.initRoutes()
-	log.Fatal(http.ListenAndServe(":8080", s.router))
+	log.Fatal(http.ListenAndServe(":8090", s.router))
 }
 
 func (s *APIServer) initRoutes()  {
